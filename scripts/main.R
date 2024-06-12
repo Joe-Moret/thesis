@@ -21,14 +21,9 @@ library(sandwich)
 library(readxl) 
 
 
-
-
-
-library(data.table) # install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table") for Macbook
-library(purrr)
-library(broom)
-library(ggplot2)
-
+# library(data.table) # install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table") for Macbook
+# library(purrr)
+# library(broom)
 
 
 # Run code chunks  ---------------------------------

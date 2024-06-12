@@ -1,7 +1,7 @@
 # Average cross-sectional earnings forecast regression summary statistics (Table 1)
 # Panel A: HVZ: summary statistics -----------------------------------
-# winsorize (at the 1% level) 
-data_temp <- winsorize(data, c("A", "E", "D", "AC", "EPS","NegEPS_EPS"))
+# winsorize (at the 0.5% level) 
+data_temp <- winsorize(data, c("A", "E", "D", "AC", "EPS"))
 
 # returns summary statistics for the HVZ model (A, E, NegE, D, DD, AC)
 summary_panel_HVZ <- bind_rows(
@@ -149,6 +149,10 @@ summary_table <- summary_results %>%
 # Step 11: Display the table
 print(summary_table)
 
+# Remove redundant objects
+rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regression, summary_table)
+
+
 # Save the summary table to a CSV file
 write.csv(summary_table, file = "results/earnings_forecast_HVZ_summary.csv", row.names = FALSE)
 write.csv(final_results, file = "results/earnings_forecast_HVZ_all_years.csv", row.names = FALSE)
@@ -161,7 +165,6 @@ rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regres
 
 
 
-# Panel B: HVZ: regression results -----------------------------------
 # 1.Forecast Regression (for up to 5 years into the future): WINSORIZED -----------------------------------
 # Step 1: Subset the data
 data_temp <- data %>%
@@ -268,6 +271,9 @@ summary_table <- summary_results %>%
 
 # Step 11: Display the table
 print(summary_table)
+
+# Remove redundant objects
+rm(winsorize, k, data_temp, all_results, final_results, summary_results, run_rolling_regression, summary_table)
 
 # Save the summary table to a CSV file
 write.csv(summary_table, file = "results/earnings_forecast_HVZ_summary.csv", row.names = FALSE)
@@ -430,127 +436,6 @@ rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
 
 
 # 2. With Division among Market Cap and Book-to-Market: WINSORIZED -----------------------------------
-# Create a temporary dataset
-data_temp <- data %>%
-  select(UGVKEY, mapped_fyear, MthCap, BM, dependent_E, A, D, DD, E, NegE, AC)
-
-# Remove NA values for the relevant variables
-data_temp <- data_temp %>%
-  filter(!is.na(MthCap) & !is.na(BM) & !is.na(dependent_E) & !is.na(A) & !is.na(D) & !is.na(DD) & !is.na(E) & !is.na(NegE) & !is.na(AC))
-
-# Create a 1-year ahead lagged dependent variable
-data_temp <- data_temp %>%
-  group_by(UGVKEY) %>%
-  arrange(mapped_fyear) %>%
-  mutate(dependent_E_t1 = lead(dependent_E, 1)) %>%
-  ungroup()
-
-# Categorize firms into Book-to-Market and size groups
-data_temp <- data_temp %>%
-  mutate(
-    BM_category = case_when(
-      BM <= quantile(BM, 0.33, na.rm = TRUE) ~ "Low BM",
-      BM <= quantile(BM, 0.67, na.rm = TRUE) ~ "Med BM",
-      TRUE ~ "High BM"
-    ),
-    Size_category = case_when(
-      MthCap <= quantile(MthCap, 0.33, na.rm = TRUE) ~ "Small cap",
-      MthCap <= quantile(MthCap, 0.67, na.rm = TRUE) ~ "Medium cap",
-      TRUE ~ "Large cap"
-    )
-  )
-
-run_rolling_regression <- function(data_temp) {
-  results <- list()
-  
-  for (year in 1968:2023) {
-    for (size_group in unique(data_temp$Size_category)) {
-      for (bm_group in unique(data_temp$BM_category)) {
-        # Subset the data for the specific group and rolling window
-        data_subset <- data_temp %>%
-          filter(mapped_fyear >= (year - 10) & mapped_fyear < year) %>%
-          filter(Size_category == size_group & BM_category == bm_group)
-        
-        if (nrow(data_subset) > 0) {
-          # Define the dependent variable based on the forecast horizon
-          dependent_var <- "dependent_E_t1"
-          
-          # Estimate the regression coefficients using data from the past 10 years
-          model <- lm(as.formula(paste(dependent_var, "~ A + D + DD + E + NegE + AC")), data = data_subset)
-          coefficients <- coef(model)
-          t_stats <- summary(model)$coefficients[, "t value"]
-          adj_r_squared <- summary(model)$adj.r.squared
-          
-          # Store the results
-          results[[paste0(year, "_", size_group, "_", bm_group)]] <- data.frame(
-            year = year,
-            Size_category = size_group,
-            BM_category = bm_group,
-            intercept = coefficients[1],
-            A = coefficients[2],
-            D = coefficients[3],
-            DD = coefficients[4],
-            E = coefficients[5],
-            NegE = coefficients[6],
-            AC = coefficients[7],
-            t_intercept = t_stats[1],
-            t_A = t_stats[2],
-            t_D = t_stats[3],
-            t_DD = t_stats[4],
-            t_E = t_stats[5],
-            t_NegE = t_stats[6],
-            t_AC = t_stats[7],
-            adj_r_squared = adj_r_squared
-          )
-        }
-      }
-    }
-  }
-  do.call(rbind, results)
-}
-
-# Run the rolling regression for the 1-year ahead forecast
-results <- run_rolling_regression(data_temp)
-
-# Calculate average R-squared, intercept, coefficients and t-statistics for each group
-summary_results <- results %>%
-  group_by(Size_category, BM_category) %>%
-  summarise(
-    intercept = mean(intercept, na.rm = TRUE),
-    A = mean(A, na.rm = TRUE),
-    D = mean(D, na.rm = TRUE),
-    DD = mean(DD, na.rm = TRUE),
-    E = mean(E, na.rm = TRUE),
-    NegE = mean(NegE, na.rm = TRUE),
-    AC = mean(AC, na.rm = TRUE),
-    t_intercept = mean(t_intercept, na.rm = TRUE),
-    t_A = mean(t_A, na.rm = TRUE),
-    t_D = mean(t_D, na.rm = TRUE),
-    t_DD = mean(t_DD, na.rm = TRUE),
-    t_E = mean(t_E, na.rm = TRUE),
-    t_NegE = mean(t_NegE, na.rm = TRUE),
-    t_AC = mean(t_AC, na.rm = TRUE),
-    adj_r_squared = mean(adj_r_squared, na.rm = TRUE)
-  )
-
-# Format the summary results for table output
-summary_table <- summary_results %>%
-  mutate(LHS = "E_{t+1}") %>%
-  select(Size_category, BM_category, LHS, intercept, A, D, DD, E, NegE, AC, adj_r_squared, t_intercept, t_A, t_D, t_DD, t_E, t_NegE, t_AC) %>%
-  arrange(factor(Size_category, levels = c("Small cap", "Medium cap", "Large cap")), 
-          factor(BM_category, levels = c("Low BM", "Med BM", "High BM"))) 
-
-# Display the table
-print(summary_table)
-
-# Save the summary table to a CSV file 
-write.csv(summary_table, file = "results/earnings_forecast_HVZ_summary_grouped_E.csv", row.names = FALSE)
-write.csv(results, file = "results/earnings_forecast_HVZ_all_years_grouped_E.csv", row.names = FALSE)
-
-# Remove redundant objects
-rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
-
-
 # Winsorization function
 winsorize <- function(df, cols, lower_limit = 0.005, upper_limit = 0.995) {
   df %>%
@@ -560,7 +445,6 @@ winsorize <- function(df, cols, lower_limit = 0.005, upper_limit = 0.995) {
     }))
 }
 
-# 2. With Division among Market Cap and Book-to-Market -----------------------------------
 # Create a temporary dataset
 data_temp <- data %>%
   select(UGVKEY, mapped_fyear, MthCap, BM, dependent_E, A, D, DD, E, NegE, AC)
@@ -687,12 +571,6 @@ rm(winsorize, data_temp, results, summary_results, run_rolling_regression, summa
 
 
 # 3. With Division among Market Cap and Book-to-Market (Robustness: market scaling) -----------------------------------
-
-
-
-
-
-
 
 # Panel C: LM: regression results -----------------------------------
 # 1. Without Division among Market Cap and Book-to-Market -----------------------------------
@@ -916,25 +794,6 @@ rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regres
 
 # 2. With Division among Market Cap and Book-to-Market (Robustness Test: per share scaling) -----------------------------------
 # Inputs: data, dependent_var, independent_vars
-# Ensure that the dependent_var and independent_vars are properly defined
-dependent_var <- "dependent_E"
-independent_vars <- c("E", "NegE", "NegE_E")
-
-# Run the regression
-summary_table <- run_grouped_regression(data, dependent_var, independent_vars)
-
-# Save the summary table to a CSV file 
-write.csv(summary_table, file = paste0("results/earnings_forecast_LM_summary_grouped_E.csv"), row.names = FALSE)
-write.csv(results, file = paste0("results/earnings_forecast_LM_all_years_grouped_E", dependent_var, ".csv"), row.names = FALSE)
-
-# Remove redundant objects
-rm(winsorize, data_temp, results, summary_results, summary_table)
-
-
-
-# 3. With Division among Market Cap and Book-to-Market (Robustness: market scaling) -----------------------------------
-# 4. With Division among Market Cap and Book-to-Market (Robustness Test: per share scaling) -----------------------------------
-# Inputs: data, dependent_var, independent_vars
 data_temp <- data %>%
   select(UGVKEY, mapped_fyear, MthCap, BM, dependent_EPS, EPS, NegEPS, NegEPS_EPS)
 
@@ -1042,4 +901,10 @@ write.csv(results, file = "results/earnings_forecast_LM_all_years_per_share.csv"
 
 # Remove redundant objects
 rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
+
+
+
+
+
+# 3. With Division among Market Cap and Book-to-Market (Robustness: market scaling) -----------------------------------
 

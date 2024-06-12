@@ -92,6 +92,7 @@ data <- data %>%
     MthPrc, MthRet, datadate, fyear, fyr, mapped_fyear, mapped_fyr, dependent_E, dependent_EPS, A, E, NegE, NegE_E, EPS, NegEPS, NegEPS_EPS, D, DD, AC, BM,
     OP, INV, EP, ROE, bkvlps, teq, ceq, revt, ni, xint, xagt, mib, cogs, act, che, lct, dlc, txp, dp, oancf, xidoc
   )
+# ********summary(OP; INV, EP, ROE, BM) need to be winsorized -> 0 and Inf******
 
 
 # create interest rate (IR) variable -----------------------------------
@@ -104,7 +105,7 @@ colnames(rates) <- c("observation_date", "1y_T-Bill", "10y_T-Bill")
 # Convert date column to Date type and filter for June
 rates <- rates %>%
   mutate(observation_date = as.Date(observation_date)) %>%
-  filter(month(observation_date) == 7) %>%
+  filter(month(observation_date) == 7) %>%    # first July is closest to the end of June
   mutate(mapped_fyear = year(observation_date)) %>%
   select(mapped_fyear, `1y_T-Bill`, `10y_T-Bill`)
 
@@ -114,11 +115,5 @@ data <- data %>%
 
 # remove redundant dataset
 rm(rates)
-
-
-
-
-
-
 
 

@@ -23,11 +23,6 @@ summarise_stats <- function(df, variables) {
 
 
 
-
-
-
-
-
 # Table 1: Panel B - HVZ Forecast Regression  -----------------------------------
 # Winsorization rolling_regression (at 0.5% level)
 winsorize_regression <- function(df, cols, lower_limit = 0.005, upper_limit = 0.995) {
@@ -41,10 +36,6 @@ winsorize_regression <- function(df, cols, lower_limit = 0.005, upper_limit = 0.
     ungroup()
   return(df)
 }
-
-
-
-
 
 
 
