@@ -150,11 +150,12 @@ for (variable in variables_to_plot) {
   plot_grouped_outliers(data_temp, variable, window = 10)
 }
 
-
-
-
 # remove redundant objects
-rm(data_temp, plot_overall_outliers, identify_overall_outliers, identify_grouped_outliers)
+rm(data_temp, variable, variables_to_plot, identify_overall_outliers, identify_grouped_outliers, plot_overall_outliers, plot_grouped_outliers)
+  
+
+
+
 
 
 

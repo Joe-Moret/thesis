@@ -14,7 +14,7 @@ categorize_firms <- function(data) {
         TRUE ~ "Large cap"
       )
     )
-}
+} # contains Size and BM categories
 
 # identify overall outliers (i.e. across all firms) within each 10 year window for each year
 identify_overall_outliers <- function(data, variable, lower_limit = 0.005, upper_limit = 0.995) {
@@ -39,15 +39,9 @@ identify_grouped_outliers <- function(data, variable, lower_limit = 0.005, upper
 }
 
 
-
-
-
-
-
-
 # Table 1: Panel A - Summary Statistics -----------------------------------
 # winsorize independent variables at 1% level
-winsorize <- function(df, cols, lower_limit = 0.005, upper_limit = 0.995) {
+winsorize <- function(df, cols, lower_limit = 0.01, upper_limit = 0.99) {
   df %>%
     mutate(across(all_of(cols), ~ {
       quantiles <- quantile(., probs = c(lower_limit, upper_limit), na.rm = TRUE)
@@ -70,7 +64,6 @@ summarise_stats <- function(df, variables) {
 
 
 
-
 # Table 1: Panel B - HVZ Forecast Regression  -----------------------------------
 # Winsorization rolling_regression (at 0.5% level)
 winsorize_regression <- function(df, cols, lower_limit = 0.005, upper_limit = 0.995) {
@@ -84,7 +77,6 @@ winsorize_regression <- function(df, cols, lower_limit = 0.005, upper_limit = 0.
     ungroup()
   return(df)
 }
-
 
 
 # Function to run rolling grouped (market cap and BM) regression for 1-year ahead forecast
