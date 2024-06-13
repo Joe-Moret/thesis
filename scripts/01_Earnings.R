@@ -163,7 +163,7 @@ rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regres
 
 
 
-# 2. All Variables & winsorized -----------------------------------
+# 2. All Variables  -----------------------------------
 # Subset the data
 data_temp <- categorize_firms(data) %>%
   select(UGVKEY, mapped_fyear, A, D, DD, E, NegE, AC, dependent_E, Size_category, BM_category)
@@ -271,8 +271,8 @@ summary_table <- summary_results %>%
 print(summary_table)
 
 # Save the summary table to a CSV file
-write.csv(summary_table, file = "results/01_table/earnings_forecast_HVZ_summary_all_Variables_winsorized.csv", row.names = FALSE)
-write.csv(final_results, file = "results/01_table/earnings_forecast_HVZ_all_years_all_Variables_winsorized.csv", row.names = FALSE)
+write.csv(summary_table, file = "results/01_table/earnings_forecast_HVZ_summary_all_Variables.csv", row.names = FALSE)
+write.csv(final_results, file = "results/01_table/earnings_forecast_HVZ_all_years_all_Variables.csv", row.names = FALSE)
 
 # Remove redundant objects
 rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regression, summary_table)
@@ -378,8 +378,8 @@ summary_table <- summary_results %>%
 print(summary_table)
 
 # Save the summary table to a CSV file
-write.csv(summary_table, file = "results/01_table/earnings_forecast_HVZ_summary_without_Dummies_winsorized.csv", row.names = FALSE)
-write.csv(final_results, file = "results/01_table/earnings_forecast_HVZ_all_years_without_Dummies_winsorized.csv", row.names = FALSE)
+write.csv(summary_table, file = "results/01_table/earnings_forecast_HVZ_summary_without_Dummies.csv", row.names = FALSE)
+write.csv(final_results, file = "results/01_table/earnings_forecast_HVZ_all_years_without_Dummies.csv", row.names = FALSE)
 
 # Remove redundant objects
 rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regression, summary_table)
@@ -495,8 +495,8 @@ summary_table <- summary_results %>%
 print(summary_table)
 
 # Save the summary table to a CSV file 
-write.csv(summary_table, file = "results/earnings_forecast_HVZ_summary_all_Variables_winsorized_grouped.csv", row.names = FALSE)
-write.csv(results, file = "results/earnings_forecast_HVZ_all_years_all_Variables_winsorized_grouped.csv", row.names = FALSE)
+write.csv(summary_table, file = "results/earnings_forecast_HVZ_summary_all_Variables_grouped.csv", row.names = FALSE)
+write.csv(results, file = "results/earnings_forecast_HVZ_all_years_all_Variables_grouped.csv", row.names = FALSE)
 
 # Remove redundant objects
 rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
@@ -615,8 +615,8 @@ summary_table <- summary_results %>%
 print(summary_table)
 
 # Save the summary table to a CSV file 
-write.csv(summary_table, file = "results/earnings_forecast_HVZ_summary_grouped_E.csv", row.names = FALSE)
-write.csv(results, file = "results/earnings_forecast_HVZ_all_years_grouped_E.csv", row.names = FALSE)
+write.csv(summary_table, file = "results/earnings_forecast_HVZ_summary_grouped_scaled.csv", row.names = FALSE)
+write.csv(results, file = "results/earnings_forecast_HVZ_all_years_grouped_scaled.csv", row.names = FALSE)
 
 # Remove redundant objects
 rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
@@ -721,8 +721,8 @@ summary_table <- summary_results %>%
 print(summary_table)
 
 # Save the summary table to a CSV file
-write.csv(summary_table, file = "results/01_table/earnings_forecast_LM_summary_all_Variables_winsorized.csv", row.names = FALSE)
-write.csv(final_results, file = "results/01_table/earnings_forecast_LM_all_years_all_Variables_winsorized.csv", row.names = FALSE)
+write.csv(summary_table, file = "results/01_table/earnings_forecast_LM_summary_all_Variables.csv", row.names = FALSE)
+write.csv(final_results, file = "results/01_table/earnings_forecast_LM_all_years_all_Variables.csv", row.names = FALSE)
 
 # Remove redundant objects
 rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regression, summary_table)
@@ -824,8 +824,8 @@ summary_table <- summary_results %>%
 print(summary_table)
 
 # Save the summary table to a CSV file
-write.csv(summary_table, file = "results/01_table/earnings_forecast_LM_summary_without_Dummies_winsorized.csv", row.names = FALSE)
-write.csv(final_results, file = "results/01_table/earnings_forecast_LM_all_years_without_Dummies_winsorized.csv", row.names = FALSE)
+write.csv(summary_table, file = "results/01_table/earnings_forecast_LM_summary_without_Dummies.csv", row.names = FALSE)
+write.csv(final_results, file = "results/01_table/earnings_forecast_LM_all_years_without_Dummies.csv", row.names = FALSE)
 
 # Remove redundant objects
 rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regression, summary_table)
@@ -928,8 +928,8 @@ summary_table <- summary_results %>%
 print(summary_table)
 
 # Save the summary table to a CSV file 
-write.csv(summary_table, file = "results/earnings_forecast_LM_summary_all_Variables_winsorized_grouped.csv", row.names = FALSE)
-write.csv(results, file = "results/earnings_forecast_LM_all_years_all_Variables_winsorized_grouped.csv", row.names = FALSE)
+write.csv(summary_table, file = "results/earnings_forecast_LM_summary_all_Variables_grouped.csv", row.names = FALSE)
+write.csv(results, file = "results/earnings_forecast_LM_all_years_all_Variables_grouped.csv", row.names = FALSE)
 
 # Remove redundant objects
 rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
@@ -1039,8 +1039,8 @@ summary_table <- summary_results %>%
 print(summary_table)
 
 # Save the summary table to a CSV file 
-write.csv(summary_table, file = "results/earnings_forecast_LM_summary_all_Variables_winsorized_grouped.csv", row.names = FALSE)
-write.csv(results, file = "results/earnings_forecast_LM_all_years_all_Variables_winsorized_grouped.csv", row.names = FALSE)
+write.csv(summary_table, file = "results/earnings_forecast_LM_summary_all_Variables_grouped_scaled.csv", row.names = FALSE)
+write.csv(results, file = "results/earnings_forecast_LM_all_years_all_Variables_grouped_scaled.csv", row.names = FALSE)
 
 # Remove redundant objects
 rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
@@ -1129,10 +1129,10 @@ summary_table <- summary_results %>%
 print(summary_table)
 
 # Save the summary table to a CSV file 
-write.csv(summary_table, file = "results/earnings_forecast_HVZ_summary_all_Variables_winsorized_grouped.csv", row.names = FALSE)
-write.csv(results, file = "results/earnings_forecast_HVZ_all_years_all_Variables_winsorized_grouped.csv", row.names = FALSE)
+write.csv(summary_table, file = "results/earnings_forecast_LM_summary_without_Dummies_grouped.csv", row.names = FALSE)
+write.csv(results, file = "results/earnings_forecast_LM_all_years_without_Dummies_grouped.csv", row.names = FALSE)
 
 # Remove redundant objects
-rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
+rm(k, data_temp, results, summary_results, run_rolling_regression, summary_table)
 
 
