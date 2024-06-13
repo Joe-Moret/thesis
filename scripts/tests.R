@@ -20,7 +20,7 @@ plot_dummies_count_total <- function(data_temp) {
   ggplot(data_temp, aes(x = mapped_fyear)) +
     geom_bar(aes(y = total_DD, fill = "total_DD"), stat = "identity", position = "dodge", alpha = 0.5) +
     geom_bar(aes(y = total_NegE, fill = "total_NegE"), stat = "identity", position = "dodge", alpha = 0.5) +
-    geom_line(aes(y = total_firms, color = "firms_per_category"), alpha = 1, linewidth = 0.5) +
+    geom_line(aes(y = total_firms, color = "firms_per_category"), alpha = 0.7, linewidth = 0.5) +
     labs(title = "DD and NegE Over Time",
          x = "Year",
          y = "Count",
@@ -59,7 +59,7 @@ plot_dummies_count_grouped <- function(data) {
   ggplot(data, aes(x = mapped_fyear)) +
     geom_bar(aes(y = total_DD, fill = "total_DD"), stat = "identity", position = "dodge", alpha = 0.5) +
     geom_bar(aes(y = total_NegE, fill = "total_NegE"), stat = "identity", position = "dodge", alpha = 0.5) +
-    geom_line(aes(y = total_firms, color = "firms_per_category"), alpha = 1, linewidth = 0.5) +  
+    geom_line(aes(y = total_firms, color = "firms_per_category"), alpha = 0.7, linewidth = 0.5) +  
     facet_grid(Size_category ~ BM_category) +  
     labs(title = "DD and NegE Over Time by Size and BM Category",
          x = "Year",
@@ -98,18 +98,6 @@ plot_overall_outliers <- function(data, variable, window = 10, save_path = "plot
   data <- categorize_firms(data)
   data <- identify_overall_outliers(data, variable)
   
-  # Create a summary table for outliers
-  outlier_overall_summary <- data %>%
-    filter(outlier == TRUE) %>%
-    group_by(mapped_fyear, Size_category, BM_category) %>%
-    summarise(outlier_count = n(), .groups = 'drop')
-  
-  # Print the summary table
-  print(outlier_overall_summary)
-  
-  # Save the summary table as a CSV file
-  write.csv(outlier_overall_summary, file = "results/outliers/outlier_overall_summary.csv", row.names = FALSE)
-  
   # Plot
   plot <- ggplot(data, aes(x = mapped_fyear, y = .data[[variable]], color = outlier)) +
     geom_point() +
@@ -131,12 +119,6 @@ variables_to_plot <- c("A", "E", "D", "AC", "EPS")
 for (variable in variables_to_plot) {
   plot_overall_outliers(data_temp, variable, window = 10)
 }
-
-
-
-
-
-
 
 
 
@@ -168,8 +150,10 @@ for (variable in variables_to_plot) {
   plot_grouped_outliers(data_temp, variable, window = 10)
 }
 
-# remove redundant objects
 
+
+
+# remove redundant objects
 rm(data_temp, plot_overall_outliers, identify_overall_outliers, identify_grouped_outliers)
 
 
