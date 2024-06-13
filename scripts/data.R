@@ -94,7 +94,6 @@ data <- data %>%
   )
 # ********summary(OP; INV, EP, ROE, BM) need to be winsorized -> 0 and Inf******
 
-
 # create interest rate (IR) variable -----------------------------------
 # Read the rates dataset
 rates <- read_excel(here("data", "Yields_Tbill.xls"), sheet = 1, range = "A11:C732")
@@ -115,5 +114,11 @@ data <- data %>%
 
 # remove redundant dataset
 rm(rates)
+
+
+
+
+
+
 
 

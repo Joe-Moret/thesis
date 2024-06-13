@@ -908,3 +908,15 @@ rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
 
 # 3. With Division among Market Cap and Book-to-Market (Robustness: market scaling) -----------------------------------
 
+
+# how often is NegEPS = 1 per mappef_fyear?
+
+
+# Assuming data is your dataframe
+count_neg_eps_per_year <- data %>%
+  filter(NegEPS == 1) %>%
+  group_by(mapped_fyear) %>%
+  summarise(count = n())
+
+# Display the summary table
+print(count_neg_eps_per_year)

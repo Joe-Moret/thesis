@@ -1,3 +1,50 @@
+# tests.R: Outliers ------------------------
+# categorize by Market Cap and BM sizes 
+categorize_firms <- function(data) {
+  data %>%
+    mutate(
+      BM_category = case_when(
+        BM <= quantile(BM, 0.30, na.rm = TRUE) ~ "Low BM",
+        BM <= quantile(BM, 0.70, na.rm = TRUE) ~ "Med BM",
+        TRUE ~ "High BM"
+      ),
+      Size_category = case_when(
+        MthCap <= quantile(MthCap, 0.30, na.rm = TRUE) ~ "Small cap",
+        MthCap <= quantile(MthCap, 0.70, na.rm = TRUE) ~ "Medium cap",
+        TRUE ~ "Large cap"
+      )
+    )
+}
+
+# identify overall outliers (i.e. across all firms) within each 10 year window for each year
+identify_overall_outliers <- function(data, variable, lower_limit = 0.005, upper_limit = 0.995) {
+  data %>%
+    mutate(
+      lower_bound = quantile(.data[[variable]], probs = lower_limit, na.rm = TRUE),
+      upper_bound = quantile(.data[[variable]], probs = upper_limit, na.rm = TRUE),
+      outlier = ifelse(.data[[variable]] < lower_bound | .data[[variable]] > upper_bound, TRUE, FALSE)
+    )
+}
+
+# identify grouped outliers (i.e. within each Market Cap and BM category) within each 10 year window for each year
+identify_grouped_outliers <- function(data, variable, lower_limit = 0.005, upper_limit = 0.995) {
+  data %>%
+    group_by(group, Size_category, BM_category) %>%
+    mutate(
+      lower_bound = quantile(.data[[variable]], probs = lower_limit, na.rm = TRUE),
+      upper_bound = quantile(.data[[variable]], probs = upper_limit, na.rm = TRUE),
+      outlier = ifelse(.data[[variable]] < lower_bound | .data[[variable]] > upper_bound, TRUE, FALSE)
+    ) %>%
+    ungroup()
+}
+
+
+
+
+
+
+
+
 # Table 1: Panel A - Summary Statistics -----------------------------------
 # winsorize independent variables at 1% level
 winsorize <- function(df, cols, lower_limit = 0.005, upper_limit = 0.995) {
@@ -18,6 +65,7 @@ summarise_stats <- function(df, variables) {
     mutate(across(where(is.numeric), ~na_if(.x, Inf))) %>%
     mutate(across(where(is.numeric), ~round(.x, 2)))
 }
+
 
 
 

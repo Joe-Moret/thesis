@@ -9,7 +9,7 @@ sapply(c("scripts/functions.R", "scripts/data.R", "scripts/01_Earnings.R",
          "scripts/02_FB.R", "scripts/03_FF.R", "scripts/04_ICC.R", 
          "scripts/05_MeV.R", "scripts/06_Risk.R"), file.exists)
 
-# Load the Packages ---------------------------------
+# Install and load the Packages ---------------------------------
 library(haven)
 library(here)
 library(ggplot2)
@@ -19,6 +19,8 @@ library(dplyr)
 library(lmtest)
 library(sandwich)
 library(readxl) 
+library(purrr)
+library(readr)
 
 
 # library(data.table) # install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table") for Macbook
