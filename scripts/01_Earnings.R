@@ -278,7 +278,7 @@ write.csv(final_results, file = "results/01_table/earnings_forecast_HVZ_all_year
 rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regression, summary_table)
 
 
-# 3. Without Dummy Variables & winsorized -----------------------------------
+# 3. Without Dummy Variables -----------------------------------
 # Subset the data
 data_temp <- categorize_firms(data) %>%
   select(UGVKEY, mapped_fyear, A, D, E, AC, dependent_E, Size_category, BM_category)
@@ -389,7 +389,109 @@ rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regres
 
 
 
-# 4. All Variables & winsorized: grouped by Market Cap and Book-to-Market -----------------------------------
+# 4. Without Dummy Variables: grouped by Market Cap and Book-to-Market -----------------------------------
+# Create a temporary dataset
+data_temp <- categorize_firms(data) %>%
+  select(UGVKEY, mapped_fyear, MthCap, BM, dependent_E, A, D, E, AC, Size_category, BM_category)
+
+# Remove NA values for the relevant variables
+data_temp <- data_temp %>%
+  filter(!is.na(MthCap) & !is.na(BM) & !is.na(dependent_E) & !is.na(A) & !is.na(D) & !is.na(E) & !is.na(AC))
+
+# Create a 1-year ahead lagged dependent variable
+data_temp <- data_temp %>%
+  group_by(UGVKEY) %>%
+  arrange(mapped_fyear) %>%
+  mutate(dependent_E_t1 = lead(dependent_E, 1)) %>%
+  ungroup()
+
+run_rolling_regression <- function(data_temp) {
+  results <- list()
+  
+  for (year in 1968:2023) {
+    for (size_group in unique(data_temp$Size_category)) {
+      for (bm_group in unique(data_temp$BM_category)) {
+        # Subset the data for the specific group and rolling window
+        data_subset <- data_temp %>%
+          filter(mapped_fyear >= (year - 10) & mapped_fyear < year) %>%
+          filter(Size_category == size_group & BM_category == bm_group)
+        
+        # Winsorize
+        data_subset <- winsorize_regression(data_subset, c("A", "D", "E", "AC"))
+        
+        if (nrow(data_subset) > 0) {
+          
+          # Define the dependent variable based on the forecast horizon
+          dependent_var <- "dependent_E_t1"
+          
+          # Estimate the regression coefficients using data from the past 10 years
+          model <- lm(as.formula(paste(dependent_var, "~ A + D + E + AC")), data = data_subset)
+          coefficients <- coef(model)
+          t_stats <- summary(model)$coefficients[, "t value"]
+          adj_r_squared <- summary(model)$adj.r.squared
+          
+          # Store the results
+          results[[paste0(year, "_", size_group, "_", bm_group)]] <- data.frame(
+            year = year,
+            Size_category = size_group,
+            BM_category = bm_group,
+            intercept = coefficients[1],
+            A = coefficients[2],
+            D = coefficients[3],
+            E = coefficients[4],
+            AC = coefficients[5],
+            t_intercept = t_stats[1],
+            t_A = t_stats[2],
+            t_D = t_stats[3],
+            t_E = t_stats[4],
+            t_AC = t_stats[5],
+            adj_r_squared = adj_r_squared
+          )
+        }
+      }
+    }
+  }
+  do.call(rbind, results)
+}
+
+# Run the rolling regression for the 1-year ahead forecast
+results <- run_rolling_regression(data_temp)
+
+# Calculate average R-squared, intercept, coefficients and t-statistics for each group
+summary_results <- results %>%
+  group_by(Size_category, BM_category) %>%
+  summarise(
+    intercept = mean(intercept, na.rm = TRUE),
+    A = mean(A, na.rm = TRUE),
+    D = mean(D, na.rm = TRUE),
+    E = mean(E, na.rm = TRUE),
+    AC = mean(AC, na.rm = TRUE),
+    t_intercept = mean(t_intercept, na.rm = TRUE),
+    t_A = mean(t_A, na.rm = TRUE),
+    t_D = mean(t_D, na.rm = TRUE),
+    t_E = mean(t_E, na.rm = TRUE),
+    t_AC = mean(t_AC, na.rm = TRUE),
+    adj_r_squared = mean(adj_r_squared, na.rm = TRUE)
+  )
+
+# Format the summary results for table output
+summary_table <- summary_results %>%
+  mutate(LHS = "E_{t+1}") %>%
+  select(Size_category, BM_category, LHS, intercept, A, D, E, AC, adj_r_squared, t_intercept, t_A, t_D, t_E, t_AC) %>%
+  arrange(factor(Size_category, levels = c("Small cap", "Medium cap", "Large cap")), 
+          factor(BM_category, levels = c("Low BM", "Med BM", "High BM"))) 
+
+# Display the table
+print(summary_table)
+
+# Save the summary table to a CSV file 
+write.csv(summary_table, file = "results/01_table/earnings_forecast_HVZ_summary_without_Dummies_grouped.csv", row.names = FALSE)
+write.csv(results, file = "results/01_table/earnings_forecast_HVZ_all_years_without_Dummies_grouped.csv", row.names = FALSE)
+
+# Remove redundant objects
+rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
+
+# 5. All Variables: grouped by Market Cap and Book-to-Market -----------------------------------
 # Create a temporary dataset
 data_temp <- categorize_firms(data) %>%
   select(UGVKEY, mapped_fyear, MthCap, BM, dependent_E, A, D, DD, E, NegE, AC, Size_category, BM_category)
@@ -501,7 +603,7 @@ write.csv(results, file = "results/01_table/earnings_forecast_HVZ_all_years_all_
 # Remove redundant objects
 rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
 
-# 5. All Variables & winsorized: grouped by Market Cap and Book-to-Market (Robustness Test: market cap scaling) -----------------------------------
+# 6. All Variables: grouped by Market Cap and Book-to-Market (Robustness Test: market cap scaling) -----------------------------------
 # Create a temporary dataset
 data_temp <- categorize_firms(data) %>%
   select(UGVKEY, mapped_fyear, MthCap, BM, dependent_E, A, D, DD, E, NegE, AC, Size_category, BM_category)
@@ -625,7 +727,7 @@ rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
 
 
 # Panel C: LM: regression results -----------------------------------
-# 1. All Variables & winsorized -----------------------------------
+# 1. All Variables -----------------------------------
 # Subset the data
 data_temp <- categorize_firms(data) %>%
   select(UGVKEY, mapped_fyear, EPS, NegEPS, NegEPS_EPS, dependent_EPS, Size_category, BM_category)
@@ -736,7 +838,7 @@ rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regres
 
 
 
-# 2. Without Dummy Variables & winsorized -----------------------------------
+# 2. Without Dummy Variables -----------------------------------
 # Subset the data
 data_temp <- categorize_firms(data) %>%
   select(UGVKEY, mapped_fyear, EPS, dependent_EPS, Size_category, BM_category)
@@ -836,7 +938,7 @@ rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regres
 
 
 
-# 3. All Variables & winsorized: grouped by Market Cap and Book-to-Market -----------------------------------
+# 3. All Variables: grouped by Market Cap and Book-to-Market -----------------------------------
 # Create a temporary dataset
 data_temp <- categorize_firms(data) %>%
   select(UGVKEY, mapped_fyear, MthCap, BM, EPS, NegEPS, NegEPS_EPS, Size_category, BM_category)
@@ -940,7 +1042,99 @@ rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
 
 
 
-# 4. All Variables & winsorized: grouped by Market Cap and Book-to-Market (Robustness Test: market cap scaling) -----------------------------------
+# 4. Without Dummy Variables: grouped by Market Cap and Book-to-Market -----------------------------------
+# Create a temporary dataset
+data_temp <- categorize_firms(data) %>%
+  select(UGVKEY, mapped_fyear, MthCap, BM, EPS, Size_category, BM_category)
+
+# Remove NA values for the relevant variables
+data_temp <- data_temp %>%
+  filter(!is.na(MthCap) & !is.na(BM) & !is.na(EPS))
+
+# Create a 1-year ahead lagged dependent variable
+data_temp <- data_temp %>%
+  group_by(UGVKEY) %>%
+  arrange(mapped_fyear) %>%
+  mutate(EPS_t1 = lead(EPS, 1)) %>%
+  ungroup()
+
+run_rolling_regression <- function(data_temp) {
+  results <- list()
+  
+  for (year in 1968:2023) {
+    for (size_group in unique(data_temp$Size_category)) {
+      for (bm_group in unique(data_temp$BM_category)) {
+        # Subset the data for the specific group and rolling window
+        data_subset <- data_temp %>%
+          filter(mapped_fyear >= (year - 10) & mapped_fyear < year) %>%
+          filter(Size_category == size_group & BM_category == bm_group)
+        
+        # Winsorize
+        data_subset <- winsorize_regression(data_subset, c("EPS"))
+        
+        if (nrow(data_subset) > 0) {
+          
+          # Define the dependent variable based on the forecast horizon
+          dependent_var <- "EPS_t1"
+          
+          # Estimate the regression coefficients using data from the past 10 years
+          model <- lm(as.formula(paste(dependent_var, "~ EPS")), data = data_subset)
+          coefficients <- coef(model)
+          t_stats <- summary(model)$coefficients[, "t value"]
+          adj_r_squared <- summary(model)$adj.r.squared
+          
+          # Store the results
+          results[[paste0(year, "_", size_group, "_", bm_group)]] <- data.frame(
+            year = year,
+            Size_category = size_group,
+            BM_category = bm_group,
+            intercept = coefficients[1],
+            EPS = coefficients[2],
+            t_intercept = t_stats[1],
+            t_EPS = t_stats[2],
+            adj_r_squared = adj_r_squared
+          )
+        }
+      }
+    }
+  }
+  do.call(rbind, results)
+}
+
+# Run the rolling regression for the 1-year ahead forecast
+results <- run_rolling_regression(data_temp)
+
+# Calculate average R-squared, intercept, coefficients and t-statistics for each group
+summary_results <- results %>%
+  group_by(Size_category, BM_category) %>%
+  summarise(
+    intercept = mean(intercept, na.rm = TRUE),
+    EPS = mean(EPS, na.rm = TRUE),
+    t_intercept = mean(t_intercept, na.rm = TRUE),
+    t_EPS = mean(t_EPS, na.rm = TRUE),
+    adj_r_squared = mean(adj_r_squared, na.rm = TRUE)
+  )
+
+# Format the summary results for table output
+summary_table <- summary_results %>%
+  mutate(LHS = "EPS_{t+1}") %>%
+  select(Size_category, BM_category, LHS, intercept, EPS, adj_r_squared, t_intercept, t_EPS) %>%
+  arrange(factor(Size_category, levels = c("Small cap", "Medium cap", "Large cap")), 
+          factor(BM_category, levels = c("Low BM", "Med BM", "High BM"))) 
+
+# Display the table
+print(summary_table)
+
+# Save the summary table to a CSV file 
+write.csv(summary_table, file = "results/01_table/earnings_forecast_LM_summary_without_Dummies_grouped.csv", row.names = FALSE)
+write.csv(results, file = "results/01_table/earnings_forecast_LM_all_years_without_Dummies_grouped.csv", row.names = FALSE)
+
+# Remove redundant objects
+rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
+
+
+
+# 5. All Variables: grouped by Market Cap and Book-to-Market (Robustness Test: market cap scaling) -----------------------------------
 # Create a temporary dataset
 data_temp <- categorize_firms(data) %>%
   select(UGVKEY, mapped_fyear, MthCap, BM, EPS, NegEPS, dependent_EPS, NegEPS_EPS, Size_category, BM_category)
@@ -1044,95 +1238,4 @@ write.csv(results, file = "results/01_table/earnings_forecast_LM_all_years_all_V
 
 # Remove redundant objects
 rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
-
-# 5. Without Dummy Variables & winsorized: grouped by Market Cap and Book-to-Market -----------------------------------
-# Create a temporary dataset
-data_temp <- categorize_firms(data) %>%
-  select(UGVKEY, mapped_fyear, MthCap, BM, EPS, Size_category, BM_category)
-
-# Remove NA values for the relevant variables
-data_temp <- data_temp %>%
-  filter(!is.na(MthCap) & !is.na(BM) & !is.na(EPS))
-
-# Create a 1-year ahead lagged dependent variable
-data_temp <- data_temp %>%
-  group_by(UGVKEY) %>%
-  arrange(mapped_fyear) %>%
-  mutate(EPS_t1 = lead(EPS, 1)) %>%
-  ungroup()
-
-run_rolling_regression <- function(data_temp) {
-  results <- list()
-  
-  for (year in 1968:2023) {
-    for (size_group in unique(data_temp$Size_category)) {
-      for (bm_group in unique(data_temp$BM_category)) {
-        # Subset the data for the specific group and rolling window
-        data_subset <- data_temp %>%
-          filter(mapped_fyear >= (year - 10) & mapped_fyear < year) %>%
-          filter(Size_category == size_group & BM_category == bm_group)
-        
-        # Winsorize
-        data_subset <- winsorize_regression(data_subset, c("EPS"))
-        
-        if (nrow(data_subset) > 0) {
-          
-          # Define the dependent variable based on the forecast horizon
-          dependent_var <- "EPS_t1"
-          
-          # Estimate the regression coefficients using data from the past 10 years
-          model <- lm(as.formula(paste(dependent_var, "~ EPS")), data = data_subset)
-          coefficients <- coef(model)
-          t_stats <- summary(model)$coefficients[, "t value"]
-          adj_r_squared <- summary(model)$adj.r.squared
-          
-          # Store the results
-          results[[paste0(year, "_", size_group, "_", bm_group)]] <- data.frame(
-            year = year,
-            Size_category = size_group,
-            BM_category = bm_group,
-            intercept = coefficients[1],
-            EPS = coefficients[2],
-            t_intercept = t_stats[1],
-            t_EPS = t_stats[2],
-            adj_r_squared = adj_r_squared
-          )
-        }
-      }
-    }
-  }
-  do.call(rbind, results)
-}
-
-# Run the rolling regression for the 1-year ahead forecast
-results <- run_rolling_regression(data_temp)
-
-# Calculate average R-squared, intercept, coefficients and t-statistics for each group
-summary_results <- results %>%
-  group_by(Size_category, BM_category) %>%
-  summarise(
-    intercept = mean(intercept, na.rm = TRUE),
-    EPS = mean(EPS, na.rm = TRUE),
-    t_intercept = mean(t_intercept, na.rm = TRUE),
-    t_EPS = mean(t_EPS, na.rm = TRUE),
-    adj_r_squared = mean(adj_r_squared, na.rm = TRUE)
-  )
-
-# Format the summary results for table output
-summary_table <- summary_results %>%
-  mutate(LHS = "EPS_{t+1}") %>%
-  select(Size_category, BM_category, LHS, intercept, EPS, adj_r_squared, t_intercept, t_EPS) %>%
-  arrange(factor(Size_category, levels = c("Small cap", "Medium cap", "Large cap")), 
-          factor(BM_category, levels = c("Low BM", "Med BM", "High BM"))) 
-
-# Display the table
-print(summary_table)
-
-# Save the summary table to a CSV file 
-write.csv(summary_table, file = "results/01_table/earnings_forecast_LM_summary_without_Dummies_grouped.csv", row.names = FALSE)
-write.csv(results, file = "results/01_table/earnings_forecast_LM_all_years_without_Dummies_grouped.csv", row.names = FALSE)
-
-# Remove redundant objects
-rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
-
 
