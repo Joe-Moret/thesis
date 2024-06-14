@@ -80,9 +80,10 @@ run_rolling_regression <- function(data_temp, forecast_horizon) {
       
       # Estimate the regression coefficients using data from the past 10 years
       model <- lm(as.formula(paste(dependent_var, "~ A + D + DD + E + NegE + AC")), data = data_subset)
-      nw_se <- sqrt(diag(NeweyWest(model, lag = 1)))  
+      nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+      
       coefficients <- coef(model)
-      t_stats <- coefficients / nw_se
+      t_stats <- nw_se[, "t value"]
       adj_r_squared <- summary(model)$adj.r.squared
       
       # Store the results
@@ -164,6 +165,7 @@ rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regres
 
 
 # 2. All Variables  -----------------------------------
+# *** this HVZ model is reported in 02_FB.R -> environment: earnings_forecasts_HVZ_each_company ***
 # Subset the data
 data_temp <- categorize_firms(data) %>%
   select(UGVKEY, mapped_fyear, A, D, DD, E, NegE, AC, dependent_E, Size_category, BM_category)
@@ -240,6 +242,14 @@ for (k in 1:5) {
 # Combine results into a single dataframe
 final_results <- bind_rows(all_results)
 
+# Save the earnings forecasts for each company (UGVKEY) for each year (mapped_fyear)
+earnings_forecasts_HVZ_each_company <- data_temp %>%
+  select(UGVKEY, mapped_fyear, starts_with("dependent_E_t")) %>%
+  arrange(UGVKEY, mapped_fyear) # Order by UGVKEY and within that by mapped_fyear
+
+# Save the forecasts to a CSV file
+write.csv(earnings_forecasts_HVZ_each_company, file = "results/02_table/earnings_forecasts_HVZ_each_company.csv", row.names = FALSE)
+
 # Calculate average R-squared, intercept, coefficients, and t-statistics for each forecast horizon
 summary_results <- final_results %>%
   group_by(forecast_horizon) %>%
@@ -261,7 +271,7 @@ summary_results <- final_results %>%
     adj_r_squared = mean(adj_r_squared, na.rm = TRUE)
   )
 
-# Format the summary results for table output without italics for t-statistics
+# Format the summary results for table output
 summary_table <- summary_results %>%
   mutate(LHS = paste0("E_{t+", forecast_horizon, "}")) %>%
   select(forecast_horizon, LHS, intercept, A, D, DD, E, NegE, AC, adj_r_squared, t_intercept, t_A, t_D, t_DD, t_E, t_NegE, t_AC) %>%
@@ -277,7 +287,7 @@ write.csv(final_results, file = "results/01_table/earnings_forecast_HVZ_all_year
 # Remove redundant objects
 rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regression, summary_table)
 
-
+                                                                                   #FB_02.R
 # 3. Without Dummy Variables -----------------------------------
 # Subset the data
 data_temp <- categorize_firms(data) %>%
@@ -426,8 +436,10 @@ run_rolling_regression <- function(data_temp) {
           
           # Estimate the regression coefficients using data from the past 10 years
           model <- lm(as.formula(paste(dependent_var, "~ A + D + E + AC")), data = data_subset)
+          nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+          
           coefficients <- coef(model)
-          t_stats <- summary(model)$coefficients[, "t value"]
+          t_stats <- nw_se[, "t value"]
           adj_r_squared <- summary(model)$adj.r.squared
           
           # Store the results
@@ -530,8 +542,10 @@ run_rolling_regression <- function(data_temp) {
           
           # Estimate the regression coefficients using data from the past 10 years
           model <- lm(as.formula(paste(dependent_var, "~ A + D + DD + E + NegE + AC")), data = data_subset)
+          nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+          
           coefficients <- coef(model)
-          t_stats <- summary(model)$coefficients[, "t value"]
+          t_stats <- nw_se[, "t value"]
           adj_r_squared <- summary(model)$adj.r.squared
           
           # Store the results
@@ -650,8 +664,10 @@ run_rolling_regression <- function(data_temp) {
           
           # Estimate the regression coefficients using data from the past 10 years
           model <- lm(as.formula(paste(dependent_var, "~ A + D + DD + E + NegE + AC")), data = data_subset)
+          nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+          
           coefficients <- coef(model)
-          t_stats <- summary(model)$coefficients[, "t value"]
+          t_stats <- nw_se[, "t value"]
           adj_r_squared <- summary(model)$adj.r.squared
           
           # Store the results
@@ -763,9 +779,10 @@ run_rolling_regression <- function(data_temp, forecast_horizon) {
       
       # Estimate the regression coefficients using data from the past 10 years
       model <- lm(as.formula(paste(dependent_var, "~ EPS + NegEPS + NegEPS_EPS")), data = data_subset)
-      nw_se <- sqrt(diag(NeweyWest(model, lag = 1)))  
+      nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+      
       coefficients <- coef(model)
-      t_stats <- coefficients / nw_se
+      t_stats <- nw_se[, "t value"]
       adj_r_squared <- summary(model)$adj.r.squared
       
       # Store the results
@@ -874,9 +891,10 @@ run_rolling_regression <- function(data_temp, forecast_horizon) {
       
       # Estimate the regression coefficients using data from the past 10 years
       model <- lm(as.formula(paste(dependent_var, "~ EPS")), data = data_subset)
-      nw_se <- sqrt(diag(NeweyWest(model, lag = 1)))  
+      nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+      
       coefficients <- coef(model)
-      t_stats <- coefficients / nw_se
+      t_stats <- nw_se[, "t value"]
       adj_r_squared <- summary(model)$adj.r.squared
       
       # Store the results
@@ -975,8 +993,10 @@ run_rolling_regression <- function(data_temp) {
           
           # Estimate the regression coefficients using data from the past 10 years
           model <- lm(as.formula(paste(dependent_var, "~ EPS + NegEPS + NegEPS_EPS")), data = data_subset)
+          nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+          
           coefficients <- coef(model)
-          t_stats <- summary(model)$coefficients[, "t value"]
+          t_stats <- nw_se[, "t value"]
           adj_r_squared <- summary(model)$adj.r.squared
           
           # Store the results
@@ -1041,7 +1061,7 @@ rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
 
 
 
-
+                                          #FB_02.R
 # 4. Without Dummy Variables: grouped by Market Cap and Book-to-Market -----------------------------------
 # Create a temporary dataset
 data_temp <- categorize_firms(data) %>%
@@ -1079,8 +1099,10 @@ run_rolling_regression <- function(data_temp) {
           
           # Estimate the regression coefficients using data from the past 10 years
           model <- lm(as.formula(paste(dependent_var, "~ EPS")), data = data_subset)
+          nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+          
           coefficients <- coef(model)
-          t_stats <- summary(model)$coefficients[, "t value"]
+          t_stats <- nw_se[, "t value"]
           adj_r_squared <- summary(model)$adj.r.squared
           
           # Store the results
@@ -1178,8 +1200,10 @@ run_rolling_regression <- function(data_temp) {
           
           # Estimate the regression coefficients using data from the past 10 years
           model <- lm(as.formula(paste(dependent_var, "~ EPS + NegEPS + NegEPS_EPS")), data = data_subset)
+          nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+          
           coefficients <- coef(model)
-          t_stats <- summary(model)$coefficients[, "t value"]
+          t_stats <- nw_se[, "t value"]
           adj_r_squared <- summary(model)$adj.r.squared
           
           # Store the results
@@ -1239,3 +1263,112 @@ write.csv(results, file = "results/01_table/earnings_forecast_LM_all_years_all_V
 # Remove redundant objects
 rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
 
+
+# 6. All Variables: grouped by Market Cap and Book-to-Market (Robustness Test: market cap scaling) -----------------------------------
+# Create a temporary dataset
+data_temp <- categorize_firms(data) %>%
+  select(UGVKEY, mapped_fyear, MthCap, BM, E, NegE, dependent_E, NegE_E, Size_category, BM_category)
+
+# Remove NA values for the relevant variables
+data_temp <- data_temp %>%
+  filter(!is.na(MthCap) & !is.na(BM) & !is.na(E) & !is.na(NegE) & !is.na(NegE_E))
+
+# Scale the specified variables by MthCap
+data_temp <- data_temp %>%
+  mutate(
+    dependent_E = dependent_E / MthCap,
+    E = E / MthCap
+  )
+
+# Create a 1-year ahead lagged dependent variable
+data_temp <- data_temp %>%
+  group_by(UGVKEY) %>%
+  arrange(mapped_fyear) %>%
+  mutate(E_t1 = lead(E, 1)) %>%
+  ungroup()
+
+run_rolling_regression <- function(data_temp) {
+  results <- list()
+  
+  for (year in 1968:2023) {
+    for (size_group in unique(data_temp$Size_category)) {
+      for (bm_group in unique(data_temp$BM_category)) {
+        # Subset the data for the specific group and rolling window
+        data_subset <- data_temp %>%
+          filter(mapped_fyear >= (year - 10) & mapped_fyear < year) %>%
+          filter(Size_category == size_group & BM_category == bm_group)
+        
+        # Winsorize
+        data_subset <- winsorize_regression(data_subset, c("E"))
+        
+        if (nrow(data_subset) > 0) {
+          
+          # Define the dependent variable based on the forecast horizon
+          dependent_var <- "E_t1"
+          
+          # Estimate the regression coefficients using data from the past 10 years
+          model <- lm(as.formula(paste(dependent_var, "~ E + NegE + NegE_E")), data = data_subset)
+          nw_se <- coeftest(model, vcov = NeweyWest(model, lag = 1, prewhite = FALSE))
+          
+          coefficients <- coef(model)
+          t_stats <- nw_se[, "t value"]
+          adj_r_squared <- summary(model)$adj.r.squared
+          
+          # Store the results
+          results[[paste0(year, "_", size_group, "_", bm_group)]] <- data.frame(
+            year = year,
+            Size_category = size_group,
+            BM_category = bm_group,
+            intercept = coefficients[1],
+            E = coefficients[2],
+            NegE = coefficients[3],
+            NegE_E = coefficients[4],
+            t_intercept = t_stats[1],
+            t_E = t_stats[2],
+            t_NegE = t_stats[3],
+            t_NegE_E = t_stats[4],
+            adj_r_squared = adj_r_squared
+          )
+        }
+      }
+    }
+  }
+  do.call(rbind, results)
+}
+
+# Run the rolling regression for the 1-year ahead forecast
+results <- run_rolling_regression(data_temp)
+
+# Calculate average R-squared, intercept, coefficients and t-statistics for each group
+summary_results <- results %>%
+  group_by(Size_category, BM_category) %>%
+  summarise(
+    intercept = mean(intercept, na.rm = TRUE),
+    E = mean(E, na.rm = TRUE),
+    NegE = mean(NegE, na.rm = TRUE),
+    NegE_E = mean(NegE_E, na.rm = TRUE),
+    t_intercept = mean(t_intercept, na.rm = TRUE),
+    t_E = mean(t_E, na.rm = TRUE),
+    t_NegE = mean(t_NegE, na.rm = TRUE),
+    t_NegE_E = mean(t_NegE_E, na.rm = TRUE),
+    adj_r_squared = mean(adj_r_squared, na.rm = TRUE)
+  )
+
+# Format the summary results for table output
+summary_table <- summary_results %>%
+  mutate(LHS = "E_{t+1}") %>%
+  select(Size_category, BM_category, LHS, intercept, E, NegE, NegE_E, adj_r_squared, t_intercept, t_E, t_NegE, t_NegE_E) %>%
+  arrange(factor(Size_category, levels = c("Small cap", "Medium cap", "Large cap")), 
+          factor(BM_category, levels = c("Low BM", "Med BM", "High BM"))) 
+
+# Display the table
+print(summary_table)
+
+# Save the summary table to a CSV file 
+write.csv(summary_table, file = "results/01_table/earnings_forecast_LM_summary_all_Variables_grouped_scaled.csv", row.names = FALSE)
+write.csv(results, file = "results/01_table/earnings_forecast_LM_all_years_all_Variables_grouped_scaled.csv", row.names = FALSE)
+
+# Remove redundant objects
+rm(data_temp, results, summary_results, run_rolling_regression, summary_table)
+
+   # E instead of EPS
