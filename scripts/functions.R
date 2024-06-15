@@ -62,7 +62,7 @@ summarise_stats <- function(df, variables) {
 
 # Table 1: Panel B/C - Forecast Regressions  -----------------------------------
 # Winsorization rolling_regression (at 0.5% level)
-winsorize_regression <- function(df, cols, lower_limit = 0.005, upper_limit = 0.995) {
+winsorize_regression <- function(df, cols, lower_limit = 0.0025, upper_limit = 0.9975) {
   df <- df %>%
     group_by(Size_category, BM_category) %>%
     mutate(across(all_of(cols), ~ {
@@ -73,6 +73,12 @@ winsorize_regression <- function(df, cols, lower_limit = 0.005, upper_limit = 0.
     ungroup()
   return(df)
 }
+
+
+
+# Table 2: Forecast Bias (FB) -----------------------------------
+
+
 
 
 

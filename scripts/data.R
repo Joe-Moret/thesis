@@ -99,14 +99,14 @@ data <- data %>%
 rates <- read_excel(here("data", "Yields_Tbill.xls"), sheet = 1, range = "A11:C732")
 
 # Rename the columns for easier handling
-colnames(rates) <- c("observation_date", "1y_T-Bill", "10y_T-Bill")
+colnames(rates) <- c("observation_date", "1y_Tbill", "10y_Tbill")
 
 # Convert date column to Date type and filter for June
 rates <- rates %>%
   mutate(observation_date = as.Date(observation_date)) %>%
   filter(month(observation_date) == 7) %>%    # first July is closest to the end of June
   mutate(mapped_fyear = year(observation_date)) %>%
-  select(mapped_fyear, `1y_T-Bill`, `10y_T-Bill`)
+  select(mapped_fyear, `1y_Tbill`, `10y_Tbill`)
 
 # Merge interest rates with main data based on mapped_fyear
 data <- data %>%
