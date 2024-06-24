@@ -2,6 +2,7 @@
 # categorize by Market Cap and BM sizes 
 categorize_firms <- function(data) {
   data %>%
+    group_by(mapped_fyear) %>%  # grouping done for each year seperately
     mutate(
       BM_category = case_when(
         BM <= quantile(BM, 0.30, na.rm = TRUE) ~ "Low BM",
@@ -13,8 +14,11 @@ categorize_firms <- function(data) {
         MthCap <= quantile(MthCap, 0.70, na.rm = TRUE) ~ "Medium cap",
         TRUE ~ "Large cap"
       )
-    )
-} 
+    ) %>%
+    ungroup() %>%  
+    mutate(BM_category = factor(BM_category, levels = c("Low BM", "Med BM", "High BM"))) %>% 
+    mutate(Size_category = factor(Size_category, levels = c("Small cap", "Medium cap", "Large cap")))
+}
 
 # identify overall outliers (i.e. across all firms) within each 10 year window for each year
 identify_overall_outliers <- function(data, variable, lower_limit = 0.005, upper_limit = 0.995) {
@@ -37,7 +41,6 @@ identify_grouped_outliers <- function(data, variable, lower_limit = 0.005, upper
     ) %>%
     ungroup()
 }
-
 
 # Table 1: Panel A - Summary Statistics -----------------------------------
 # winsorize independent variables at 1% level
