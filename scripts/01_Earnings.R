@@ -3,7 +3,7 @@
 # Panel A: HVZ: summary statistics -----------------------------------
 # winsorize (at the 1% level) 
 data_temp <- data %>%
-  select(UGVKEY, mapped_fyear, A, E, dependent_E, dependent_EPS, NegE, D, DD, AC, EPS, NegEPS, NegEPS_EPS) %>% 
+  select(UGVKEY, mapped_fyear, A, E, NegE, D, DD, AC, EPS, NegEPS, NegEPS_EPS) %>% 
   winsorize(c("A", "E", "D", "AC", "EPS"))
 
 # returns summary statistics for the HVZ model (A, E, NegE, D, DD, AC)

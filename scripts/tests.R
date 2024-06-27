@@ -95,8 +95,8 @@ ggsave("plots/plot_count_dummies_grouped.jpeg", plot = plot_count_dummies_groupe
 rm(data_categorized, data_temp, count_dummies_total, count_dummies_grouped, plot_count_dummies_total, plot_count_dummies_grouped)
 
 
-# Outliers: non-dummy Variables of HVZ and LM models -----------------------------------
-# 3. Outliers (at the 0.5% level) for all companies based on a 10-year rolling window, but plots outliers for each size and BM category seperately *** -----------------------------------
+# Outliers (at the 0.5% winsorization level): non-dummy Variables of HVZ and LM models -----------------------------------
+# 1. Outliers for all companies based on a 10-year rolling window, but plots outliers for each size and BM category seperately *** -----------------------------------
 # create a temporary dataset and remove NA values
 data_temp <- data %>%
   select(UGVKEY, mapped_fyear, MthCap, BM, A, D, E, AC, EPS) %>% 
@@ -135,7 +135,7 @@ for (variable in variables_to_plot) {
 
 
 
-# 4. Outliers within each Market Cap (size) and BM category based on a 10-year rolling window and plots these outliers for each category  *** -----------------------------------
+# 2. Grouped Outliers within each Market Cap (size) and BM category based on a 10-year rolling window and plots these outliers for each category  *** -----------------------------------
 # Function to plot outliers within 10-year rolling windows
 plot_grouped_outliers <- function(data, variable, window = 10, save_path = "plots/outliers/") {
   data <- data %>%

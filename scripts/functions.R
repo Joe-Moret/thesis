@@ -42,7 +42,7 @@ identify_grouped_outliers <- function(data, variable, lower_limit = 0.005, upper
     ungroup()
 }
 
-# Table 1: Panel A - Summary Statistics -----------------------------------
+# Table 1 -----------------------------------
 # winsorize independent variables at 1% level
 winsorize <- function(df, cols, lower_limit = 0.01, upper_limit = 0.99) {
   df %>%
@@ -63,7 +63,6 @@ summarise_stats <- function(df, variables) {
     mutate(across(where(is.numeric), ~round(.x, 2)))
 }
 
-# Table 1: Panel B/C - Forecast Regressions  -----------------------------------
 # Winsorization rolling_regression (at 0.5% level)
 winsorize_regression <- function(df, cols, lower_limit = 0.0025, upper_limit = 0.9975) {
   df <- df %>%
