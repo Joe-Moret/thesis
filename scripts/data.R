@@ -56,6 +56,7 @@ data <- data %>%
   ungroup() %>%
   select(-delta_act, -delta_che, -delta_lct, -delta_dlc, -delta_txp, -accruals_balance_sheet, -accruals_cash_flow)
 
+
 # creating several variables -----------------------------------
 data <- data %>%
   # Create dividends payments (DD) dummy

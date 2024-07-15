@@ -168,6 +168,44 @@ rm(data_temp, variable, variables_to_plot, identify_overall_outliers, identify_g
   
 
 
+# Counting NA (missing) values for variables (A, D, E, AC) in the HVZ regression -----------------------------------
+# Create a function to count NAs by year for a given column and count distinct UGVKEY
+count_na_and_firms_by_year <- function(data, column) {
+  data %>%
+    group_by(mapped_fyear) %>%
+    summarize(
+      NA_count = sum(is.na(.data[[column]])),
+      total_firms = n_distinct(UGVKEY)
+    )
+}
+
+# Apply the function to each column of interest
+na_counts <- list(
+  A = count_na_and_firms_by_year(data, "A"),
+  D = count_na_and_firms_by_year(data, "D"),
+  E = count_na_and_firms_by_year(data, "E"),
+  AC = count_na_and_firms_by_year(data, "AC")
+)
+
+# Combine all counts into one data frame for easier viewing
+na_counts_combined <- Reduce(function(x, y) {
+  merge(x, y, by = c("mapped_fyear", "total_firms"), all = TRUE)
+}, na_counts)
+
+# Rename columns for clarity
+colnames(na_counts_combined) <- c("mapped_fyear", "total_firms", "A_NA", "D_NA", "E_NA", "AC_NA")
+
+# View the combined results
+print(na_counts_combined)
+
+# save output
+write.csv(na_counts_combined, "results/counts_NA_variables.csv")
+
+# remove redundant objects
+rm(count_na_and_firms_by_year, na_counts, na_counts_combined)
+
+
+
 # Interest Rates -----------------------------------
 interest_rate_plot <- data %>%
   ggplot(aes(x = mapped_fyear)) +

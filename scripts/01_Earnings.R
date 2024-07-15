@@ -20,6 +20,7 @@ summary_panel_HVZ <- bind_rows(
   )
 )
 
+
 # returns summary statistics for the LM model (EPS, NegEPS, NegEPS_EPS)
 summary_panel_LM <- bind_rows(
   tibble(Period = "1963-2009") %>% bind_cols(
