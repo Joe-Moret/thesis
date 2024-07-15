@@ -4,15 +4,15 @@ categorize_firms <- function(data) {
   data %>%
     group_by(mapped_fyear) %>%  # grouping done for each year seperately
     mutate(
-      BM_category = case_when(
-        BM <= quantile(BM, 0.30, na.rm = TRUE) ~ "Low BM",
-        BM <= quantile(BM, 0.70, na.rm = TRUE) ~ "Med BM",
-        TRUE ~ "High BM"
-      ),
       Size_category = case_when(
         MthCap <= quantile(MthCap, 0.30, na.rm = TRUE) ~ "Small cap",
         MthCap <= quantile(MthCap, 0.70, na.rm = TRUE) ~ "Medium cap",
         TRUE ~ "Large cap"
+      ),
+      BM_category = case_when(
+        BM <= quantile(BM, 0.30, na.rm = TRUE) ~ "Low BM",
+        BM <= quantile(BM, 0.70, na.rm = TRUE) ~ "Med BM",
+        TRUE ~ "High BM"
       )
     ) %>%
     ungroup() %>%  

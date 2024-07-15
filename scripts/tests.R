@@ -12,8 +12,8 @@ count_dummies_total <- data_temp %>%
     total_firms = n_distinct(UGVKEY),
     total_DD = sum(DD),
     total_NegE = sum(NegE),
-    percent_DD = (total_DD / total_firms) * 100,
-    percent_NegE = (total_NegE / total_firms) * 100,
+    percent_DD = round((total_DD / total_firms) * 100, 2),
+    percent_NegE = round((total_NegE / total_firms) * 100, 2),
     .groups = 'drop'
   )
 
@@ -41,10 +41,14 @@ plot_count_dummies_total <- function(data_temp) {
 plot_count_dummies_total(count_dummies_total)
 
 # saving output in the directory
-write.csv(count_dummies_total, "results/count_dummies_total.csv")
-ggsave("plots/plot_count_dummies_total.jpeg", plot = plot_count_dummies_total(count_dummies_total), width = 10, height = 6)
+write.csv(count_dummies_total, "results/other/count_dummies_total.csv")
+ggsave("plots/other/plot_count_dummies_total.jpeg", plot = plot_count_dummies_total(count_dummies_total), width = 10, height = 6)
 
-# 2. Grouped Count -----------------------------------
+# remove redundant objects
+rm(data_temp, count_dummies_total, plot_count_dummies_total)
+
+
+# 2. Grouped (Size & BM) Count -----------------------------------
 # grouped by Market Cap and BM categories (30th and 70th percentiles)
 # create dataset
 data_categorized <- categorize_firms(data) %>% 
@@ -58,8 +62,8 @@ count_dummies_grouped <- data_categorized %>%
     total_firms = n_distinct(UGVKEY),
     total_DD = round(sum(DD), 0),
     total_NegE = round(sum(NegE), 0),
-    percent_DD = round((total_DD / total_firms) * 100, 0),
-    percent_NegE = round((total_NegE / total_firms) * 100, 0),
+    percent_DD = round((total_DD / total_firms) * 100, 2),
+    percent_NegE = round((total_NegE / total_firms) * 100, 2),
     .groups = 'drop'
   )
 
@@ -88,15 +92,15 @@ plot_count_dummies_grouped <- function(data) {
 plot_count_dummies_grouped(count_dummies_grouped)
 
 # saving output
-write.csv(count_dummies_grouped, "results/count_dummies_grouped.csv")
-ggsave("plots/plot_count_dummies_grouped.jpeg", plot = plot_count_dummies_grouped(count_dummies_grouped), width = 10, height = 6)
+write.csv(count_dummies_grouped, "results/other/count_dummies_grouped.csv")
+ggsave("plots/other/plot_count_dummies_grouped.jpeg", plot = plot_count_dummies_grouped(count_dummies_grouped), width = 10, height = 6)
 
 # remove redundant objects
-rm(data_categorized, data_temp, count_dummies_total, count_dummies_grouped, plot_count_dummies_total, plot_count_dummies_grouped)
+rm(data_categorized, count_dummies_grouped, plot_count_dummies_grouped)
 
 
 # Outliers (at the 0.5% winsorization level): non-dummy Variables of HVZ and LM models -----------------------------------
-# 1. Outliers for all companies based on a 10-year rolling window, but plots outliers for each size and BM category seperately *** -----------------------------------
+# 1. Overall Outliers for all companies based on a 10-year rolling window, but plots outliers for each size and BM category seperately -----------------------------------
 # create a temporary dataset and remove NA values
 data_temp <- data %>%
   select(UGVKEY, mapped_fyear, MthCap, BM, A, D, E, AC, EPS) %>% 
@@ -133,9 +137,7 @@ for (variable in variables_to_plot) {
   plot_overall_outliers(data_temp, variable, window = 10)
 }
 
-
-
-# 2. Grouped Outliers within each Market Cap (size) and BM category based on a 10-year rolling window and plots these outliers for each category  *** -----------------------------------
+# 2. Grouped Outliers within each Market Cap (size) and BM category based on a 10-year rolling window and plots these outliers for each category -----------------------------------
 # Function to plot outliers within 10-year rolling windows
 plot_grouped_outliers <- function(data, variable, window = 10, save_path = "plots/outliers/") {
   data <- data %>%
@@ -199,7 +201,7 @@ colnames(na_counts_combined) <- c("mapped_fyear", "total_firms", "A_NA", "D_NA",
 print(na_counts_combined)
 
 # save output
-write.csv(na_counts_combined, "results/counts_NA_variables.csv")
+write.csv(na_counts_combined, "results/other/counts_NA_variables.csv")
 
 # remove redundant objects
 rm(count_na_and_firms_by_year, na_counts, na_counts_combined)
@@ -222,8 +224,9 @@ interest_rate_plot <- data %>%
   )
 
 print(interest_rate_plot)
+
 # Save and remove the plot
-ggsave("plots/interest_rates.jpeg", plot = interest_rate_plot, width = 10, height = 6)
+ggsave("plots/other/interest_rates.jpeg", plot = interest_rate_plot, width = 10, height = 6)
 rm(interest_rate_plot)
 
 

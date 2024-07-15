@@ -57,7 +57,7 @@ data <- data %>%
   select(-delta_act, -delta_che, -delta_lct, -delta_dlc, -delta_txp, -accruals_balance_sheet, -accruals_cash_flow)
 
 
-# creating several variables -----------------------------------
+# creating variables -----------------------------------
 data <- data %>%
   # Create dividends payments (DD) dummy
   mutate(DD = ifelse(D > 0, 1, 0)) %>%
@@ -119,5 +119,7 @@ data <- data %>%
   MthPrc, MthRet, datadate, fyear, fyr, mapped_fyear, mapped_fyr, A, E, NegE, NegE_E, EPS, NegEPS, NegEPS_EPS, D, DD, AC, BM,
   OP, INV, EP, ROE, rate_1y, rate_10y
 )
+
+
 
 

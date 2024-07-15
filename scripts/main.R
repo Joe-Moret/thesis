@@ -19,14 +19,13 @@ library(sandwich)
 library(readxl) 
 
 
-
 # library(data.table) # install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table") for Macbook
 # library(broom)
-
 
 # Run code chunks  ---------------------------------
 source("scripts/functions.R")
 source("scripts/data.R")
+source("scripts/tests.R")
 source("scripts/01_Earnings.R")
 source("scripts/02_FB.R")
 source("scripts/03_FF.R")
