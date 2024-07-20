@@ -4,6 +4,7 @@
 # winsorize (at the 1% level) 
 data_temp <- data %>%
   select(UGVKEY, mapped_fyear, A, E, NegE, D, DD, AC, EPS, NegEPS, NegEPS_EPS) %>% 
+  filter(!is.na(A) & !is.na(D) & !is.na(DD) & !is.na(E) & !is.na(NegE) & !is.na(AC)) %>%
   winsorize(c("A", "E", "D", "AC", "EPS"))
 
 # returns summary statistics for the HVZ model (A, E, NegE, D, DD, AC)
@@ -15,7 +16,7 @@ summary_panel_HVZ <- bind_rows(
   ),
   tibble(Period = "1963-2023") %>% bind_cols(
     data_temp %>%
-      filter(mapped_fyear >= 1963 & mapped_fyear <= 2023) %>%
+      filter(mapped_fyear >= 1963 & mapped_fyear <= 2020) %>%
       summarise_stats(c("A", "E", "NegE", "D", "DD", "AC"))
   )
 )
@@ -30,7 +31,7 @@ summary_panel_LM <- bind_rows(
   ),
   tibble(Period = "1963-2023") %>% bind_cols(
     data_temp %>%
-      filter(mapped_fyear >= 1963 & mapped_fyear <= 2023) %>%
+      filter(mapped_fyear >= 1963 & mapped_fyear <= 2020) %>%
       summarise_stats(c("EPS", "NegEPS", "NegEPS_EPS"))
   )
 )
@@ -51,8 +52,8 @@ rm(winsorize, data_temp, summarise_stats, summary_panel_HVZ, summary_panel_LM)
 # 1. All Variables & not winsorized -----------------------------------
 # Create a temporary dataset
 data_temp <- data %>%
-  select(UGVKEY, mapped_fyear, A, D, DD, E, NegE, AC, dependent_E) %>% 
-  filter(!is.na(A) & !is.na(D) & !is.na(DD) & !is.na(E) & !is.na(NegE) & !is.na(AC) & !is.na(dependent_E)) %>% 
+  select(UGVKEY, mapped_fyear, A, D, DD, E, NegE, AC) %>% 
+  filter(!is.na(A) & !is.na(D) & !is.na(DD) & !is.na(E) & !is.na(NegE) & !is.na(AC)) %>% 
   group_by(UGVKEY) %>%
   filter(n() >= 10) %>%  # Ensure at least 10 years of data for each UGVKEY
   ungroup()
@@ -62,7 +63,7 @@ for (k in 1:5) {
   data_temp <- data_temp %>%
     group_by(UGVKEY) %>% 
     arrange(mapped_fyear) %>%
-    mutate(!!paste0("dependent_E_t", k) := lead(dependent_E, k)) %>%
+    mutate(!!paste0("dependent_E_t", k) := lead(E, k)) %>%
     ungroup()
 }
 
@@ -70,10 +71,10 @@ for (k in 1:5) {
 run_rolling_regression <- function(data_temp, forecast_horizon) {
   results <- list()
   
-  for (year in 1968:2023) {
+  for (year in 1969:2020) {
     # Subset the data for the rolling window regression
     data_subset <- data_temp %>%
-      filter(mapped_fyear >= (year - 10) & mapped_fyear < year)
+      filter(mapped_fyear >= (year - 5) & mapped_fyear < year)
     
     if (nrow(data_subset) > 0) {
       # Define the dependent variable based on the forecast horizon
@@ -163,15 +164,12 @@ rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regres
 
 
 
-
-
-
 # 2. All Variables  -----------------------------------
 # *** this HVZ model is reported in 02_FB.R -> environment: earnings_forecasts_HVZ_each_company ***
 # Subset the data and remove NA values for the relevant variables
 data_temp <- categorize_firms(data) %>%
-  select(UGVKEY, mapped_fyear, A, D, DD, E, NegE, AC, dependent_E, Size_category, BM_category) %>%
-  filter(!is.na(A) & !is.na(D) & !is.na(DD) & !is.na(E) & !is.na(NegE) & !is.na(AC) & !is.na(dependent_E)) %>%
+  select(UGVKEY, mapped_fyear, A, D, DD, E, NegE, AC, Size_category, BM_category) %>%
+  filter(!is.na(A) & !is.na(D) & !is.na(DD) & !is.na(E) & !is.na(NegE) & !is.na(AC)) %>%
   group_by(UGVKEY) %>%
   filter(n() >= 10) %>%  # Ensure at least 10 years of data for each UGVKEY
   ungroup()
@@ -181,7 +179,7 @@ for (k in 1:5) {
   data_temp <- data_temp %>%
     group_by(UGVKEY) %>%
     arrange(mapped_fyear) %>%
-    mutate(!!paste0("dependent_E_t", k) := lead(dependent_E, k)) %>%
+    mutate(!!paste0("dependent_E_t", k) := lead(E, k)) %>%
     ungroup()
 }
 
@@ -189,10 +187,10 @@ for (k in 1:5) {
 run_rolling_regression <- function(data_temp, forecast_horizon) {
   results <- list()
   
-  for (year in 1968:2023) {
+  for (year in 1968:2020) {
     # Subset the data for the rolling window regression
     data_subset <- data_temp %>%
-      filter(mapped_fyear >= (year - 10) & mapped_fyear < year)
+      filter(mapped_fyear >= (year - 5) & mapped_fyear < year)
     
     # Winsorize the relevant variables, including dummy and interaction terms
     data_subset <- winsorize_regression(data_subset, c("A", "D", "E", "AC"))
@@ -299,8 +297,8 @@ rm(k, data_temp, all_results, final_results, summary_results, run_rolling_regres
 # 3. Without Dummy Variables -----------------------------------
 # Subset the data
 data_temp <- categorize_firms(data) %>%
-  select(UGVKEY, mapped_fyear, A, D, E, AC, dependent_E, Size_category, BM_category) %>% 
-  filter(!is.na(A) & !is.na(D) & !is.na(E) & !is.na(AC) & !is.na(dependent_E)) %>% 
+  select(UGVKEY, mapped_fyear, A, D, E, AC, Size_category, BM_category) %>% 
+  filter(!is.na(A) & !is.na(D) & !is.na(E) & !is.na(AC)) %>% 
   group_by(UGVKEY) %>%
     filter(n() >= 10) %>%  # Ensure at least 10 years of data for each UGVKEY
     ungroup()
@@ -310,7 +308,7 @@ for (k in 1:5) {
   data_temp <- data_temp %>%
     group_by(UGVKEY) %>%
     arrange(mapped_fyear) %>%
-    mutate(!!paste0("dependent_E_t", k) := lead(dependent_E, k)) %>%
+    mutate(!!paste0("dependent_E_t", k) := lead(E, k)) %>%
     ungroup()
 }
 

@@ -44,7 +44,7 @@ identify_grouped_outliers <- function(data, variable, lower_limit = 0.005, upper
 
 # Table 1 -----------------------------------
 # winsorize independent variables at 1% level
-winsorize <- function(df, cols, lower_limit = 0.01, upper_limit = 0.99) {
+winsorize <- function(df, cols, lower_limit = 0.005, upper_limit = 0.995) {
   df %>%
     mutate(across(all_of(cols), ~ {
       quantiles <- quantile(., probs = c(lower_limit, upper_limit), na.rm = TRUE)
